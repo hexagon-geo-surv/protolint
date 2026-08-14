@@ -623,6 +623,8 @@ Run the following command to create a new release:
 bash release.sh <version> [message]
 ```
 
+Pushing the tag is only the first step — CI publishes to GitHub Releases, npm, PyPI, Maven Central, Docker Hub and Homebrew from it. See [CONTRIBUTING.md](CONTRIBUTING.md#releasing) for how to verify each channel.
+
 ## License
 
 The MIT License (MIT)
