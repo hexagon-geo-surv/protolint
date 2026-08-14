@@ -7,6 +7,12 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
+  # Required to mint the OIDC token that npm trusted publishing exchanges for a
+  # short-lived publish credential (cf. https://docs.npmjs.com/trusted-publishers)
+  id-token: write
+
 jobs:
   publish_npm:
     name: Publish NPM
@@ -19,39 +25,19 @@ jobs:
       - name: Install node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: ./bdist/js/package.json
+          # Trusted publishing needs Node >= 22.14.0 and npm >= 11.5.1, which is
+          # stricter than the engines range in ./bdist/js/package.json.
+          node-version: 24
+          registry-url: https://registry.npmjs.org
       - name: Install dependencies
         working-directory: ./bdist/js
         run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
       - name: Set package version
         working-directory: ./bdist/js
         run: npm version from-git --no-git-tag-version
-      - name: Issue warning if NPM_TOKEN is not set
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          echo "::warning title=Missing authentication token::In order to publish an NPM package, you must set the NPM_TOKEN secret"
-        if: ${{ env.NODE_AUTH_TOKEN == '' }}
-      - name: Issue warning if NPM_EMAIL is not set
-        env:
-          NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
-        run: |
-          echo "::warning title=Missing authentication information::In order to publish an NPM package, you must set the NPM_EMAIL secret"
-        if: ${{ env.NPM_EMAIL == '' }}
-      - name: Create .npmrc file
-        env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
-        run: |
-          # Use project specific npmrc file (cf. https://docs.npmjs.com/cli/v6/using-npm/config)
-          # Use scoped AUTH TOKEN (cf. https://docs.npmjs.com/cli/v9/configuring-npm/npmrc#auth-related-configuration)
-          echo "//registry.npmjs.org/:_authToken = $NPM_AUTH_TOKEN" >> .npmrc
-          echo "email = $NPM_EMAIL" >> .npmrc
-        working-directory: ./bdist/js
-        if: ${{ env.NPM_AUTH_TOKEN != '' }}
+      # No NPM_TOKEN needed: the package is published through a trusted publisher
+      # configured on npmjs.com for this repository and workflow file name.
+      # Provenance is attached automatically, so do not pass --provenance.
       - name: Publish NPM package
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
         working-directory: ./bdist/js
-        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+        run: npm publish
