@@ -219,6 +219,10 @@ Jenkins Plugins
 
 - [warnings-ng](https://github.com/jenkinsci/warnings-ng-plugin) and any that use [violatons-lib](https://github.com/tomasbjerre/violations-lib)
 
+Linters aggregator
+
+- [MegaLinter](https://megalinter.io/) runs [protolint](https://megalinter.io/latest/descriptors/protobuf_protolint/) out of the box among its many embedded linters
+
 ### Environment specific output
 
 It is possible to format your linting according to the formatting of the CI/CD environment. The environment must be set using the output format. Currently, the following output is realized:
